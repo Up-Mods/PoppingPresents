@@ -12,10 +12,10 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.ServiceLoader;
 
-public class PPCommon {
+public class PoppingPresents {
 
     public static final String MOD_ID = "popping_presents";
-    public static final IPlatform COMMON_PLATFORM = ServiceLoader.load(IPlatform.class).findFirst().orElseThrow();
+    public static final IPlatform PLATFORM = ServiceLoader.load(IPlatform.class).findFirst().orElseThrow();
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public static void init() {

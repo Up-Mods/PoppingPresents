@@ -2,7 +2,7 @@ package dev.upcraft.poppingpresents.fabric.platform;
 
 import com.google.auto.service.AutoService;
 import com.mojang.logging.LogUtils;
-import dev.upcraft.poppingpresents.PPCommon;
+import dev.upcraft.poppingpresents.PoppingPresents;
 import dev.upcraft.poppingpresents.platform.IPlatform;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.loader.api.FabricLoader;
@@ -42,7 +42,7 @@ public class PlatformFabric implements IPlatform {
 
     @Override
     public boolean isModLoaded(String modId) {
-        return FabricLoader.getInstance().isModLoaded(PPCommon.MOD_ID);
+        return FabricLoader.getInstance().isModLoaded(PoppingPresents.MOD_ID);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class PlatformFabric implements IPlatform {
 
     @Override
     public <T extends Entity> Supplier<EntityType<T>> registerEntity(String id, EntityType.EntityFactory<T> entity, MobCategory mobCategory, UnaryOperator<EntityType.Builder<T>> properties) {
-        return registerSupplier(BuiltInRegistries.ENTITY_TYPE, id, () -> properties.apply(EntityType.Builder.of(entity, mobCategory)).build(ResourceKey.create(Registries.ENTITY_TYPE, PPCommon.id(id))));
+        return registerSupplier(BuiltInRegistries.ENTITY_TYPE, id, () -> properties.apply(EntityType.Builder.of(entity, mobCategory)).build(ResourceKey.create(Registries.ENTITY_TYPE, PoppingPresents.id(id))));
     }
 
     @Override
@@ -102,17 +102,17 @@ public class PlatformFabric implements IPlatform {
     }
 
     private static <T> Supplier<T> registerSupplier(Registry<? super T> registry, String id, Supplier<T> factory) {
-        var registeredObject = Registry.register(registry, PPCommon.id(id), factory.get());
+        var registeredObject = Registry.register(registry, PoppingPresents.id(id), factory.get());
         return () -> registeredObject;
     }
 
     private static <R, T extends R, P> Supplier<T> registerWithProperties(Registry<R> registry, String id, Function<P, T> factory, Supplier<P> propertiesGetter, BiFunction<ResourceKey<R>, P, P> keySetter) {
-        var registryId = ResourceKey.create(registry.key(), PPCommon.id(id));
+        var registryId = ResourceKey.create(registry.key(), PoppingPresents.id(id));
         var registeredObject = Registry.register(registry, registryId, factory.apply(keySetter.apply(registryId, propertiesGetter.get())));
         return () -> registeredObject;
     }
 
     private static <T, R extends Registry<? super T>> Holder<T> registerHolder(Registry<? super T> registry, String id, Supplier<T> factory) {
-        return Registry.registerForHolder(registry, PPCommon.id(id), factory.get());
+        return Registry.registerForHolder(registry, PoppingPresents.id(id), factory.get());
     }
 }

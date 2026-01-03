@@ -1,7 +1,7 @@
 package dev.upcraft.poppingpresents.neoforge.platform;
 
 import com.google.auto.service.AutoService;
-import dev.upcraft.poppingpresents.PPCommon;
+import dev.upcraft.poppingpresents.PoppingPresents;
 import dev.upcraft.poppingpresents.neoforge.PoppingPresentsNeo;
 import dev.upcraft.poppingpresents.platform.IPlatform;
 import net.minecraft.sounds.SoundEvent;
@@ -31,7 +31,7 @@ public class PlatformNeoForge implements IPlatform {
 
     @Override
     public boolean isModLoaded(String modId) {
-        return ModList.get().isLoaded(PPCommon.MOD_ID);
+        return ModList.get().isLoaded(PoppingPresents.MOD_ID);
     }
 
     @Override

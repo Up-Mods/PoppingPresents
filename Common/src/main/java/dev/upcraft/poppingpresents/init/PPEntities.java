@@ -1,6 +1,6 @@
 package dev.upcraft.poppingpresents.init;
 
-import dev.upcraft.poppingpresents.PPCommon;
+import dev.upcraft.poppingpresents.PoppingPresents;
 import dev.upcraft.poppingpresents.entity.PresentEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 
 public class PPEntities {
 
-    public static final Supplier<EntityType<PresentEntity>> PRESENT = PPCommon.COMMON_PLATFORM.registerEntity("present", PresentEntity::new, MobCategory.MISC, builder -> builder
+    public static final Supplier<EntityType<PresentEntity>> PRESENT = PoppingPresents.PLATFORM.registerEntity("present", PresentEntity::new, MobCategory.MISC, builder -> builder
         .sized(0.5F, 0.7F)
         .spawnDimensionsScale(1.2F)
         .fireImmune()
