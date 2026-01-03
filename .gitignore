@@ -1,0 +1,31 @@
+# Eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+/workspace/
+
+# IntelliJ
+/out/
+*.ipr
+*.iws
+*.iml
+/.idea/*
+
+# Gradle
+/build/
+/.gradle/
+
+# Other
+/eclipse/
+*/reports/*
+
+# Visual Studio Code
+/.settings/
+/.vscode/
+/bin/
+
+# MacOS
+*.DS_Store

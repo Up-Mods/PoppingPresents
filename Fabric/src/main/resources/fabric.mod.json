@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${version}",
+  "name": "${mod_name}",
+  "description": "${description}",
+  "authors": [
+    {
+      "name": "Up",
+      "contact": {
+        "homepage": "https://upcraft.dev"
+      }
+    },
+    {
+      "name": "KiriCattus",
+      "contact": {
+        "homepage": "https://tophatcat.dev"
+      }
+    }
+  ],
+  "contact": {
+    "homepage": "${homepage_url}",
+    "sources": "${sources_url}",
+    "issues": "${issues_url}"
+  },
+  "license": "${license_url}",
+  "icon": "logo.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.upcraft.poppingpresents.fabric.PoppingPresentsFabric"
+    ],
+    "client": [
+      "dev.upcraft.poppingpresents.fabric.client.PoppingPresentsClientFabric"
+    ]
+  },
+  "accessWidener": "META-INF/${mod_id}.accesswidener",
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric": "*",
+    "minecraft": "=${minecraft_version}",
+    "smartbrainlib": ">=${smart_brain_lib_fabric_version}",
+    "geckolib": ">=${geckolib_fabric_version}",
+    "resourcefulconfig": ">=${resourceful_config_fabric_version}",
+    "terrablender": ">=${terrablender_fabric_version}",
+    "java": ">=${java_version}"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "${discord_url}",
+        "modmenu.modrinth": "${modrinth_url}",
+        "modmenu.curseforge": "${curseforge_url}"
+      },
+      "update_checker": true
+    },
+    "mc-publish": {
+      "curseforge": "${curseforge_id}",
+      "modrinth": "${modrinth_id}",
+      "loaders": [
+        "fabric"
+      ],
+      "dependencies": [
+        "fabric-api(required){modrinth:P7dR8mSH}{curseforge:306612}",
+        "smartbrainlib(required){modrinth:PuyPazRT}{curseforge:661293}",
+        "geckolib(required){modrinth:8BmcQJ2H}{curseforge:388172}",
+        "resourcefulconfig(required){modrinth:M1953qlQ}{curseforge:714059}",
+        "terrablender(required){modrinth:kkmrDlKT}{curseforge:565956}"
+      ]
+    }
+  }
+}
