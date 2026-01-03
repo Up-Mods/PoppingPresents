@@ -1,5 +1,7 @@
 package dev.upcraft.poppingpresents.neoforge.client;
 
+import dev.upcraft.poppingpresents.client.render.entity.PresentEntityRenderer;
+import dev.upcraft.poppingpresents.init.PPEntities;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -10,6 +12,7 @@ public class PoppingPresentsClientNeo {
 
     @SubscribeEvent
     public static void registerEntityModels(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(PPEntities.PRESENT.get(), PresentEntityRenderer::new);
     }
 
     @SubscribeEvent
