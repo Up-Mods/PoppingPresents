@@ -37,21 +37,24 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: ${{ github.event.repository.name }}-Common-${{ github.sha }}
-          path: common/build/libs/*.jar
+          path: |
+            Common/build/libs/*.jar
 
       - name: Upload build artifacts (NeoForge)
         continue-on-error: true
         uses: actions/upload-artifact@v6
         with:
           name: ${{ github.event.repository.name }}-NeoForge-${{ github.sha }}
-          path: neoforge/build/libs/*.jar
+          path: |
+            NeoForge/build/libs/*.jar
 
       - name: Upload build artifacts (Fabric)
         continue-on-error: true
         uses: actions/upload-artifact@v6
         with:
           name: ${{ github.event.repository.name }}-Fabric-${{ github.sha }}
-          path: fabric/build/libs/*.jar
+          path: |
+            Fabric/build/libs/*.jar
 
       - name: Run tests
         run: ./gradlew check
