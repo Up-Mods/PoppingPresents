@@ -12,7 +12,10 @@ version = providers.environmentVariable("TAG").getOrElse("${minecraft_version}-d
 )
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(java_version)
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(java_version)
+        vendor = JvmVendorSpec.MICROSOFT
+    }
     withSourcesJar()
 //    withJavadocJar()
 }
