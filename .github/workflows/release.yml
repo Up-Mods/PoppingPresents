@@ -194,7 +194,6 @@ jobs:
           version: ${{ env.TAG }}
           webhook-url: ${{ secrets.KIRICATTUS_ANNOUNCEMENT_WEBHOOK_URL }}
           webhook-username: "Mod Update News"
-          webhook-avatar-url: https://raw.githubusercontent.com/kiris-mods/mysterious-biomes/refs/heads/devs/common/src/main/resources/logo.png
           curseforge-project-id: ${{ needs.publish_platforms.outputs.curseforge_id }}
           modrinth-project-id: ${{ needs.publish_platforms.outputs.modrinth_id }}
           ping-notification-role: false
