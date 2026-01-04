@@ -19,6 +19,10 @@ import java.util.WeakHashMap;
 public class PresentEntityModel extends GeoModel<PresentEntity> {
 
     public static final DataTicket<PresentType> TYPE = DataTicket.create(PoppingPresents.id("type").toDebugFileName(), PresentType.class);
+    /**
+     * due to this being a weak map, we don't need to care about datapack sync;
+     * it will be cleared automatically.
+     */
     private static final Map<PresentType, ModelData> MODEL_DATA_CACHE = new WeakHashMap<>();
     private static final Logger LOGGER = LogUtils.getLogger();
 
