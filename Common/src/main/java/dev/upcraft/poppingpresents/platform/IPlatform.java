@@ -1,5 +1,8 @@
 package dev.upcraft.poppingpresents.platform;
 
+import dev.upcraft.poppingpresents.PoppingPresents;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -18,6 +21,8 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 public interface IPlatform {
+
+    IPlatform INSTANCE = PoppingPresents.loadService(IPlatform.class);
 
     String getPlatformName();
     boolean isModLoaded(String modId);
@@ -41,4 +46,5 @@ public interface IPlatform {
         return registerItem(id, SpawnEggItem::new, () -> propertiesGetter.get().spawnEgg(entityType.get()));
     }
     CreativeModeTab.Builder newCreativeTabBuilder();
+    <T> EntityDataSerializer<T> registerDataSerializer(String id, EntityDataSerializer<T> serializer);
 }

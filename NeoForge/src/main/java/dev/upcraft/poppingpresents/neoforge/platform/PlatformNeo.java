@@ -1,9 +1,9 @@
 package dev.upcraft.poppingpresents.neoforge.platform;
 
 import com.google.auto.service.AutoService;
-import dev.upcraft.poppingpresents.PoppingPresents;
 import dev.upcraft.poppingpresents.neoforge.PoppingPresentsNeo;
 import dev.upcraft.poppingpresents.platform.IPlatform;
+import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -16,13 +16,14 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.fml.loading.FMLLoader;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 @AutoService(IPlatform.class)
-public class PlatformNeoForge implements IPlatform {
+public class PlatformNeo implements IPlatform {
 
     @Override
     public String getPlatformName() {
@@ -31,7 +32,12 @@ public class PlatformNeoForge implements IPlatform {
 
     @Override
     public boolean isModLoaded(String modId) {
-        return ModList.get().isLoaded(PoppingPresents.MOD_ID);
+        var modlist = ModList.get();
+        if(modlist == null) {
+            return FMLLoader.getCurrent().getLoadingModList().getMods().stream().anyMatch(it -> it.getModId().equals(modId));
+        }
+
+        return ModList.get().isLoaded(modId);
     }
 
     @Override
@@ -82,5 +88,11 @@ public class PlatformNeoForge implements IPlatform {
     @Override
     public CreativeModeTab.Builder newCreativeTabBuilder() {
         return CreativeModeTab.builder();
+    }
+
+    @Override
+    public <T> EntityDataSerializer<T> registerDataSerializer(String id, EntityDataSerializer<T> serializer) {
+        PoppingPresentsNeo.ENTITY_DATA_SERIALIZERS.register(id, () -> serializer);
+        return serializer;
     }
 }

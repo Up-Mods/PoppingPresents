@@ -2,12 +2,14 @@ package dev.upcraft.poppingpresents.neoforge;
 
 import dev.upcraft.poppingpresents.PoppingPresents;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 @Mod(PoppingPresents.MOD_ID)
 public class PoppingPresentsNeo {
@@ -18,14 +20,16 @@ public class PoppingPresentsNeo {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(PoppingPresents.MOD_ID);
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(Registries.SOUND_EVENT, PoppingPresents.MOD_ID);
     public static final DeferredRegister<CreativeModeTab> CREATIVE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, PoppingPresents.MOD_ID);
+    public static final DeferredRegister<EntityDataSerializer<?>> ENTITY_DATA_SERIALIZERS = DeferredRegister.create(NeoForgeRegistries.ENTITY_DATA_SERIALIZERS, PoppingPresents.MOD_ID);
 
     public PoppingPresentsNeo(IEventBus bus) {
         BLOCK_ENTITIES.register(bus);
         BLOCKS.register(bus);
+        CREATIVE_TABS.register(bus);
         ENTITIES.register(bus);
+        ENTITY_DATA_SERIALIZERS.register(bus);
         ITEMS.register(bus);
         SOUND_EVENTS.register(bus);
-        CREATIVE_TABS.register(bus);
         PoppingPresents.init();
     }
 }

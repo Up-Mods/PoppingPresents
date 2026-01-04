@@ -5,11 +5,13 @@ import com.mojang.logging.LogUtils;
 import dev.upcraft.poppingpresents.PoppingPresents;
 import dev.upcraft.poppingpresents.platform.IPlatform;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricTrackedDataRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
@@ -42,7 +44,7 @@ public class PlatformFabric implements IPlatform {
 
     @Override
     public boolean isModLoaded(String modId) {
-        return FabricLoader.getInstance().isModLoaded(PoppingPresents.MOD_ID);
+        return FabricLoader.getInstance().isModLoaded(modId);
     }
 
     @Override
@@ -101,18 +103,24 @@ public class PlatformFabric implements IPlatform {
         return FabricItemGroup.builder();
     }
 
-    private static <T> Supplier<T> registerSupplier(Registry<? super T> registry, String id, Supplier<T> factory) {
+    @Override
+    public <T> EntityDataSerializer<T> registerDataSerializer(String id, EntityDataSerializer<T> serializer) {
+        FabricTrackedDataRegistry.register(PoppingPresents.id(id), serializer);
+        return serializer;
+    }
+
+    static <T> Supplier<T> registerSupplier(Registry<? super T> registry, String id, Supplier<T> factory) {
         var registeredObject = Registry.register(registry, PoppingPresents.id(id), factory.get());
         return () -> registeredObject;
     }
 
-    private static <R, T extends R, P> Supplier<T> registerWithProperties(Registry<R> registry, String id, Function<P, T> factory, Supplier<P> propertiesGetter, BiFunction<ResourceKey<R>, P, P> keySetter) {
+    static <R, T extends R, P> Supplier<T> registerWithProperties(Registry<R> registry, String id, Function<P, T> factory, Supplier<P> propertiesGetter, BiFunction<ResourceKey<R>, P, P> keySetter) {
         var registryId = ResourceKey.create(registry.key(), PoppingPresents.id(id));
         var registeredObject = Registry.register(registry, registryId, factory.apply(keySetter.apply(registryId, propertiesGetter.get())));
         return () -> registeredObject;
     }
 
-    private static <T, R extends Registry<? super T>> Holder<T> registerHolder(Registry<? super T> registry, String id, Supplier<T> factory) {
+    static <T, R extends Registry<? super T>> Holder<T> registerHolder(Registry<? super T> registry, String id, Supplier<T> factory) {
         return Registry.registerForHolder(registry, PoppingPresents.id(id), factory.get());
     }
 }
