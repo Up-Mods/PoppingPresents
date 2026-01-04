@@ -1,7 +1,6 @@
 package dev.upcraft.poppingpresents.platform;
 
 import dev.upcraft.poppingpresents.PoppingPresents;
-import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
@@ -28,7 +27,7 @@ public interface IPlatform {
     String getPlatformName();
     boolean isModLoaded(String modId);
     boolean isDevelopmentEnvironment();
-    default EnvironmentType getEnvironmentName() {
+    default EnvironmentType getEnvironmentType() {
         return isDevelopmentEnvironment() ? EnvironmentType.DEVELOPMENT : EnvironmentType.PRODUCTION;
     }
 
