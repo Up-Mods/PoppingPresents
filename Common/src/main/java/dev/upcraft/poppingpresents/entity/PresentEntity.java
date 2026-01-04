@@ -1,21 +1,35 @@
 package dev.upcraft.poppingpresents.entity;
 
+import dev.upcraft.poppingpresents.init.PPEntities;
 import dev.upcraft.poppingpresents.init.PPEntityDataSerializers;
 import dev.upcraft.poppingpresents.platform.IPlatform;
 import dev.upcraft.poppingpresents.present.PresentType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.monster.piglin.PiglinAi;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.vehicle.ContainerEntity;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.ContainerOpenersCounter;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.loot.LootTable;
 import org.jspecify.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -25,19 +39,56 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.animation.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class PresentEntity extends Entity implements GeoEntity, OwnableEntity {
+import java.util.List;
+
+public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, ContainerEntity, HasCustomInventoryScreen {
 
     public static final EntityDataAccessor<Boolean> OPEN = SynchedEntityData.defineId(PresentEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<PresentType> PRESENT_TYPE = SynchedEntityData.defineId(PresentEntity.class, PPEntityDataSerializers.PRESENT_TYPE);
+    private static final int MAX_SLOTS = 27;
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
-
-    // TODO open/close
-    private int containerListeners;
+    private NonNullList<ItemStack> inventory = NonNullList.withSize(MAX_SLOTS, ItemStack.EMPTY);
+    private @Nullable ResourceKey<LootTable> lootTable;
+    private long lootTableSeed = 0L;
     private @Nullable EntityReference<LivingEntity> owner;
+
+    // FIXME write custom openers counter that works with entities
+    private final ContainerOpenersCounter openersCounter = new ContainerOpenersCounter() {
+        @Override
+        protected void onOpen(Level level, BlockPos pos, BlockState state) {
+            animateOpen();
+            setOpen(true);
+        }
+
+        @Override
+        protected void onClose(Level level, BlockPos pos, BlockState state) {
+            animateClose();
+            setOpen(false);
+        }
+
+        @Override
+        protected void openerCountChanged(Level level, BlockPos pos, BlockState state, int count, int openCount) {
+            // NO-OP
+        }
+
+        @Override
+        public boolean isOwnContainer(Player player) {
+            // TODO update when making custom GUI class
+            return player.containerMenu instanceof ChestMenu chest
+                && chest.getContainer() == PresentEntity.this;
+        }
+    };
 
     public PresentEntity(EntityType<PresentEntity> entityType, Level level) {
         super(entityType, level);
+    }
+
+    public PresentEntity(Level level, PresentType type, long lootTableSeed) {
+        this(PPEntities.PRESENT.get(), level);
+        this.setPresentType(type);
+        this.setContainerLootTableSeed(lootTableSeed);
+        this.setContainerLootTable(type.lootTable(level.registryAccess()));
     }
 
     @Override
@@ -56,6 +107,7 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity {
         this.setOpen(input.getBooleanOr("Open", false));
         this.setPresentType(input.read("PresentType", PresentType.byNameCodec(level())).orElseGet(this::getDefaultPresentType));
         this.owner = EntityReference.read(input, "Owner");
+        this.readChestVehicleSaveData(input);
     }
 
     @Override
@@ -63,6 +115,7 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity {
         output.putBoolean("Open", this.isOpen());
         output.store("PresentType", PresentType.byNameCodec(level()), this.getPresentType());
         EntityReference.store(this.owner, output, "Owner");
+        this.addChestVehicleSaveData(output);
     }
 
     public boolean isOpen() {
@@ -141,17 +194,11 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity {
             return superResult;
         }
 
-        var tryOpenResult = this.presentInteract(player, hand);
+        var tryOpenResult = this.interactWithContainerVehicle(player);
         if(tryOpenResult.consumesAction()) {
             this.gameEvent(GameEvent.ENTITY_INTERACT, player);
             return tryOpenResult;
         }
-
-        return InteractionResult.PASS;
-    }
-
-    private InteractionResult presentInteract(Player player, InteractionHand hand) {
-        // TODO open screen
 
         return InteractionResult.PASS;
     }
@@ -173,6 +220,126 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity {
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return geoCache;
+    }
+
+    @Override
+    public @Nullable ResourceKey<LootTable> getContainerLootTable() {
+        return this.lootTable;
+    }
+
+    @Override
+    public void setContainerLootTable(@Nullable ResourceKey<LootTable> lootTable) {
+        this.lootTable = lootTable;
+    }
+
+    @Override
+    public long getContainerLootTableSeed() {
+        return this.lootTableSeed;
+    }
+
+    @Override
+    public void setContainerLootTableSeed(long lootTableSeed) {
+        this.lootTableSeed = lootTableSeed;
+    }
+
+    @Override
+    public NonNullList<ItemStack> getItemStacks() {
+        return this.inventory;
+    }
+
+    @Override
+    public void clearItemStacks() {
+        this.inventory = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
+    }
+
+    @Override
+    public int getContainerSize() {
+        return MAX_SLOTS;
+    }
+
+    @Override
+    public ItemStack getItem(int slot) {
+        return this.getChestVehicleItem(slot);
+    }
+
+    @Override
+    public ItemStack removeItem(int slot, int amount) {
+        return this.removeChestVehicleItem(slot, amount);
+    }
+
+    @Override
+    public ItemStack removeItemNoUpdate(int slot) {
+        return this.removeChestVehicleItemNoUpdate(slot);
+    }
+
+    @Override
+    public void setItem(int slot, ItemStack stack) {
+        this.setChestVehicleItem(slot, stack);
+    }
+
+    @Override
+    public void setChanged() {
+        // NO-OP
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return this.isChestVehicleStillValid(player);
+    }
+
+    @Override
+    public void clearContent() {
+        this.clearChestVehicleContent();
+    }
+
+    @Override
+    public @Nullable AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        if (this.lootTable != null && player.isSpectator()) {
+            return null;
+        } else {
+            this.unpackChestVehicleLootTable(player);
+            return ChestMenu.threeRows(containerId, playerInventory, this);
+        }
+    }
+
+    @Override
+    public void startOpen(ContainerUser user) {
+        if(this.isAlive() && !user.getLivingEntity().isSpectator()) {
+            openersCounter.incrementOpeners(user.getLivingEntity(), level(), blockPosition(), Blocks.BEDROCK.defaultBlockState(), user.getContainerInteractionRange());
+        }
+    }
+
+    @Override
+    public void stopOpen(ContainerUser user) {
+        if(this.isAlive() && !user.getLivingEntity().isSpectator()) {
+            openersCounter.incrementOpeners(user.getLivingEntity(), level(), blockPosition(), Blocks.BEDROCK.defaultBlockState(), user.getContainerInteractionRange());
+        }
+    }
+
+    @Override
+    public List<ContainerUser> getEntitiesWithContainerOpen() {
+        return openersCounter.getEntitiesWithContainerOpen(level(), blockPosition());
+    }
+
+    @Override
+    public boolean canPlaceItem(int slot, ItemStack stack) {
+        // TODO might mess with loot table generation
+        return false;
+    }
+
+    @Override
+    public InteractionResult interactWithContainerVehicle(Player player) {
+        this.openCustomInventoryScreen(player);
+        return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public void openCustomInventoryScreen(Player player) {
+        player.openMenu(this);
+        if (this.level() instanceof ServerLevel serverLevel) {
+            this.gameEvent(GameEvent.CONTAINER_OPEN, player);
+            PiglinAi.angerNearbyPiglins(serverLevel, player, true);
+        }
     }
 
     public static class AnimationControllers {
