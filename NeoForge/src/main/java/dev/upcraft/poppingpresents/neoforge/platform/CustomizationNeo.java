@@ -13,10 +13,10 @@ import java.util.function.Supplier;
 @AutoService(IModCustomization.class)
 public class CustomizationNeo implements IModCustomization {
 
-    public static final DeferredRegister<PresentType> PRESENT_TYPES = DeferredRegister.create(PoppingPresents.PRESENT_TYPES_REGISTRY_ID, PoppingPresents.MOD_ID);
+    public static final DeferredRegister<PresentType> PRESENT_TYPES = DeferredRegister.create(PresentType.REGISTRY_ID, PoppingPresents.MOD_ID);
 
     static {
-        PRESENT_TYPES.makeRegistry(builder -> builder.defaultKey(PoppingPresents.PRESENT_TYPES_REGISTRY_DEFAULT).sync(true));
+        PRESENT_TYPES.makeRegistry(builder -> builder.defaultKey(PresentType.REGISTRY_DEFAULT_KEY).sync(true));
     }
 
     @Override

@@ -1,13 +1,16 @@
 package dev.upcraft.poppingpresents.neoforge;
 
 import dev.upcraft.poppingpresents.PoppingPresents;
+import dev.upcraft.poppingpresents.present.PresentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
@@ -31,5 +34,10 @@ public class PoppingPresentsNeo {
         ITEMS.register(bus);
         SOUND_EVENTS.register(bus);
         PoppingPresents.init();
+    }
+
+    @SubscribeEvent
+    public static void registerDynamicRegistries(DataPackRegistryEvent.NewRegistry event) {
+        event.dataPackRegistry(PresentType.REGISTRY_ID, PresentType.CODEC, PresentType.CODEC, builder -> builder.disableRegistrationCheck().defaultKey(PresentType.REGISTRY_DEFAULT_KEY).sync(true));
     }
 }

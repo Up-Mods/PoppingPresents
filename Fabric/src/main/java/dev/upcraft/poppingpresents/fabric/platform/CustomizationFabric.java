@@ -2,7 +2,6 @@ package dev.upcraft.poppingpresents.fabric.platform;
 
 
 import com.google.auto.service.AutoService;
-import dev.upcraft.poppingpresents.PoppingPresents;
 import dev.upcraft.poppingpresents.platform.IModCustomization;
 import dev.upcraft.poppingpresents.present.PresentType;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
@@ -15,7 +14,7 @@ import java.util.function.Supplier;
 @AutoService(IModCustomization.class)
 public class CustomizationFabric implements IModCustomization {
 
-    private static final DefaultedRegistry<PresentType> PRESENT_REGISTRY = FabricRegistryBuilder.createDefaulted(PoppingPresents.PRESENT_TYPES_REGISTRY_ID, PoppingPresents.PRESENT_TYPES_REGISTRY_DEFAULT).attribute(RegistryAttribute.SYNCED).buildAndRegister();
+    private static final DefaultedRegistry<PresentType> PRESENT_REGISTRY = FabricRegistryBuilder.createDefaulted(PresentType.REGISTRY_ID, PresentType.REGISTRY_DEFAULT_KEY).attribute(RegistryAttribute.SYNCED).buildAndRegister();
 
     @Override
     public Holder<PresentType> registerPresent(String id, Supplier<PresentType> factory) {
