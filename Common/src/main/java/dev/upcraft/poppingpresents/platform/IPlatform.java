@@ -28,8 +28,8 @@ public interface IPlatform {
     String getPlatformName();
     boolean isModLoaded(String modId);
     boolean isDevelopmentEnvironment();
-    default String getEnvironmentName() {
-        return isDevelopmentEnvironment() ? "development" : "production";
+    default EnvironmentType getEnvironmentName() {
+        return isDevelopmentEnvironment() ? EnvironmentType.DEVELOPMENT : EnvironmentType.PRODUCTION;
     }
 
     <T extends BlockEntity> Supplier<BlockEntityType<T>> registerBlockEntity(String id, Supplier<BlockEntityType<T>> blockEntityType);
@@ -50,4 +50,19 @@ public interface IPlatform {
     <T> EntityDataSerializer<T> registerDataSerializer(String id, EntityDataSerializer<T> serializer);
 
     boolean isFakePlayer(Player player);
+
+    enum EnvironmentType {
+        DEVELOPMENT("development"),
+        PRODUCTION("production");
+
+        private final String name;
+
+        EnvironmentType(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+    }
 }
