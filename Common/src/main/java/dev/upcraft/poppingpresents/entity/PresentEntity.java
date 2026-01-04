@@ -1,6 +1,7 @@
 package dev.upcraft.poppingpresents.entity;
 
 import dev.upcraft.poppingpresents.init.PPEntityDataSerializers;
+import dev.upcraft.poppingpresents.platform.IPlatform;
 import dev.upcraft.poppingpresents.present.PresentType;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -9,12 +10,13 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
@@ -23,18 +25,16 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.animation.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class PresentEntity extends Entity implements GeoEntity {
+public class PresentEntity extends Entity implements GeoEntity, OwnableEntity {
 
     public static final EntityDataAccessor<Boolean> OPEN = SynchedEntityData.defineId(PresentEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<PresentType> PRESENT_TYPE = SynchedEntityData.defineId(PresentEntity.class, PPEntityDataSerializers.PRESENT_TYPE);
-
-    protected static final RawAnimation ANIM_OPEN = RawAnimation.begin().thenPlay("interact.open");
-    protected static final RawAnimation ANIM_CLOSE = RawAnimation.begin().thenPlay("interact.close");
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
     // TODO open/close
     private int containerListeners;
+    private @Nullable EntityReference<LivingEntity> owner;
 
     public PresentEntity(EntityType<PresentEntity> entityType, Level level) {
         super(entityType, level);
@@ -53,14 +53,16 @@ public class PresentEntity extends Entity implements GeoEntity {
 
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
-        this.setOpen(input.getBooleanOr("open", false));
-        this.setPresentType(input.read("present_type", PresentType.byNameCodec(level())).orElseGet(this::getDefaultPresentType));
+        this.setOpen(input.getBooleanOr("Open", false));
+        this.setPresentType(input.read("PresentType", PresentType.byNameCodec(level())).orElseGet(this::getDefaultPresentType));
+        this.owner = EntityReference.read(input, "Owner");
     }
 
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
-        output.putBoolean("open", this.isOpen());
-        output.store("present_type", PresentType.byNameCodec(level()), this.getPresentType());
+        output.putBoolean("Open", this.isOpen());
+        output.store("PresentType", PresentType.byNameCodec(level()), this.getPresentType());
+        EntityReference.store(this.owner, output, "Owner");
     }
 
     public boolean isOpen() {
@@ -85,37 +87,107 @@ public class PresentEntity extends Entity implements GeoEntity {
     }
 
     @Override
+    public @Nullable EntityReference<LivingEntity> getOwnerReference() {
+        return this.owner;
+    }
+
+    public void setOwner(LivingEntity entity) {
+        this.owner = EntityReference.of(entity);
+    }
+
+    @Override
+    public boolean canBeCollidedWith(@Nullable Entity other) {
+        if(!this.isAlive()) {
+            return false;
+        }
+
+        if(other instanceof LivingEntity livingEntity) {
+            if(livingEntity.isShiftKeyDown()) {
+                return false;
+            }
+
+            if(owner != null) {
+                return owner.matches(livingEntity);
+            }
+
+            return other instanceof Player player && !IPlatform.INSTANCE.isFakePlayer(player);
+        }
+
+        return !this.isOpen();
+    }
+
+    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("open_close", test -> {
-                // TODO "state_open" animation
+        controllers.add(new AnimationController<>(AnimationControllers.MAIN, test -> {
+                if(this.isOpen()) {
+                    return test.setAndContinue(Animations.STATE_OPEN);
+                }
+
                 return PlayState.STOP;
             })
-            .triggerableAnim("open", ANIM_OPEN)
-            .triggerableAnim("close", ANIM_CLOSE)
+            .triggerableAnim(AnimationTriggers.TRIGGER_OPEN, Animations.INTERACT_OPEN)
+            .triggerableAnim(AnimationTriggers.TRIGGER_CLOSE, Animations.INTERACT_CLOSE)
         );
     }
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
-        return super.interact(player, hand);
+        if(!this.isAlive()) {
+            return InteractionResult.PASS;
+        }
+
+        var superResult = super.interact(player, hand);
+        if(superResult != InteractionResult.PASS) {
+            return superResult;
+        }
+
+        var tryOpenResult = this.presentInteract(player, hand);
+        if(tryOpenResult.consumesAction()) {
+            this.gameEvent(GameEvent.ENTITY_INTERACT, player);
+            return tryOpenResult;
+        }
+
+        return InteractionResult.PASS;
+    }
+
+    private InteractionResult presentInteract(Player player, InteractionHand hand) {
+        // TODO open screen
+
+        return InteractionResult.PASS;
     }
 
     public void animateOpen() {
         if(!level().isClientSide()) {
-            stopTriggeredAnim("open_close", "close");
-            triggerAnim("open_close", "open");
+            stopTriggeredAnim(AnimationControllers.MAIN, AnimationTriggers.TRIGGER_CLOSE);
+            triggerAnim(AnimationControllers.MAIN, AnimationTriggers.TRIGGER_OPEN);
         }
     }
 
     public void animateClose() {
         if(!level().isClientSide()) {
-            stopTriggeredAnim("open_close", "open");
-            triggerAnim("open_close", "close");
+            stopTriggeredAnim(AnimationControllers.MAIN, AnimationTriggers.TRIGGER_OPEN);
+            triggerAnim(AnimationControllers.MAIN, AnimationTriggers.TRIGGER_CLOSE);
         }
     }
 
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return geoCache;
+    }
+
+    public static class AnimationControllers {
+        public static final String MAIN = "main";
+    }
+
+    public static class AnimationTriggers {
+        public static final String TRIGGER_OPEN = "trigger.open";
+        public static final String TRIGGER_CLOSE = "trigger.close";
+    }
+
+    public static class Animations {
+        public static final RawAnimation INTERACT_OPEN = RawAnimation.begin().thenPlay("interact.open");
+        public static final RawAnimation INTERACT_CLOSE = RawAnimation.begin().thenPlay("interact.close");
+
+        public static final RawAnimation STATE_OPEN = RawAnimation.begin().thenPlayAndHold("state.open");
     }
 }

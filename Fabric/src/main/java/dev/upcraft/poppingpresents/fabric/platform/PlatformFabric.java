@@ -4,6 +4,7 @@ import com.google.auto.service.AutoService;
 import com.mojang.logging.LogUtils;
 import dev.upcraft.poppingpresents.PoppingPresents;
 import dev.upcraft.poppingpresents.platform.IPlatform;
+import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricTrackedDataRegistry;
 import net.fabricmc.loader.api.FabricLoader;
@@ -18,6 +19,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.SpawnEggItem;
@@ -107,6 +109,11 @@ public class PlatformFabric implements IPlatform {
     public <T> EntityDataSerializer<T> registerDataSerializer(String id, EntityDataSerializer<T> serializer) {
         FabricTrackedDataRegistry.register(PoppingPresents.id(id), serializer);
         return serializer;
+    }
+
+    @Override
+    public boolean isFakePlayer(Player player) {
+        return player instanceof FakePlayer;
     }
 
     static <T> Supplier<T> registerSupplier(Registry<? super T> registry, String id, Supplier<T> factory) {

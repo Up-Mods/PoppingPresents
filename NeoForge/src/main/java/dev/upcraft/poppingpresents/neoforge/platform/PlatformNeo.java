@@ -8,6 +8,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -94,5 +95,10 @@ public class PlatformNeo implements IPlatform {
     public <T> EntityDataSerializer<T> registerDataSerializer(String id, EntityDataSerializer<T> serializer) {
         PoppingPresentsNeo.ENTITY_DATA_SERIALIZERS.register(id, () -> serializer);
         return serializer;
+    }
+
+    @Override
+    public boolean isFakePlayer(Player player) {
+        return player.isFakePlayer();
     }
 }
