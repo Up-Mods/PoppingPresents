@@ -42,12 +42,12 @@ public record PresentType(float width, float height, Rarity rarity, int spawnWei
         return registry(level).byNameCodec();
     }
 
-    private static ResourceKey<LootTable> fromRegistryId(Identifier id) {
-        // FIXME correct format for loot table IDs
-        return ResourceKey.create(Registries.LOOT_TABLE, id);
+    public static ResourceKey<LootTable> fromRegistryId(ResourceKey<PresentType> id) {
+        // data/<modid>/loot_table/popping_presents/present/<path>
+        return ResourceKey.create(Registries.LOOT_TABLE, id.identifier().withPrefix("%s/present/".formatted(PoppingPresents.MOD_ID)));
     }
 
     public ResourceKey<LootTable> lootTable(RegistryAccess registryAccess) {
-        return customLootTableId().orElseGet(() -> fromRegistryId(registryAccess.lookupOrThrow(REGISTRY_ID).getKey(this)));
+        return customLootTableId().orElseGet(() -> fromRegistryId(registryAccess.lookupOrThrow(REGISTRY_ID).getResourceKey(this).orElseThrow(() -> new IllegalStateException("Tried to get loot table for unregistered present type!"))));
     }
 }

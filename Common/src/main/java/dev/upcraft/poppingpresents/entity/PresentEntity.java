@@ -2,8 +2,10 @@ package dev.upcraft.poppingpresents.entity;
 
 import dev.upcraft.poppingpresents.init.PPEntities;
 import dev.upcraft.poppingpresents.init.PPEntityDataSerializers;
+import dev.upcraft.poppingpresents.item.PresentItem;
 import dev.upcraft.poppingpresents.platform.IPlatform;
 import dev.upcraft.poppingpresents.present.PresentType;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -170,6 +172,17 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
     }
 
     @Override
+    public boolean isPickable() {
+        return !this.isRemoved();
+    }
+
+    @Override
+    public @Nullable ItemStack getPickResult() {
+        var holder = PresentType.registry(level()).wrapAsHolder(this.getPresentType());
+        return PresentItem.forType(holder);
+    }
+
+    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(AnimationControllers.MAIN, test -> {
                 if(this.isOpen()) {
@@ -323,8 +336,8 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
 
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
-        // TODO might mess with loot table generation
-        return false;
+        // TODO setting this to false messes up the loot table generation :/
+        return true;
     }
 
     @Override
