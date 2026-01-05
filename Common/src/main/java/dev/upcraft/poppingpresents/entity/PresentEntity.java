@@ -45,6 +45,8 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
 
     public static final EntityDataAccessor<Boolean> OPEN = SynchedEntityData.defineId(PresentEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<PresentType> PRESENT_TYPE = SynchedEntityData.defineId(PresentEntity.class, PPEntityDataSerializers.PRESENT_TYPE);
+    public static final String NBT_KEY_PRESENT_TYPE = "PresentType";
+    public static final String NBT_KEY_OWNER = "Owner";
     private static final int MAX_SLOTS = 27;
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
@@ -104,17 +106,15 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
 
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
-        this.setOpen(input.getBooleanOr("Open", false));
-        this.setPresentType(input.read("PresentType", PresentType.byNameCodec(level())).orElseGet(this::getDefaultPresentType));
-        this.owner = EntityReference.read(input, "Owner");
+        this.setPresentType(input.read(NBT_KEY_PRESENT_TYPE, PresentType.byNameCodec(level())).orElseGet(this::getDefaultPresentType));
+        this.owner = EntityReference.read(input, NBT_KEY_OWNER);
         this.readChestVehicleSaveData(input);
     }
 
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
-        output.putBoolean("Open", this.isOpen());
-        output.store("PresentType", PresentType.byNameCodec(level()), this.getPresentType());
-        EntityReference.store(this.owner, output, "Owner");
+        output.store(NBT_KEY_PRESENT_TYPE, PresentType.byNameCodec(level()), this.getPresentType());
+        EntityReference.store(this.owner, output, NBT_KEY_OWNER);
         this.addChestVehicleSaveData(output);
     }
 

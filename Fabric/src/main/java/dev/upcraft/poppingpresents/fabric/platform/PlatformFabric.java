@@ -12,9 +12,11 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.Util;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -22,6 +24,7 @@ import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -29,10 +32,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.slf4j.Logger;
 
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
+import java.util.function.*;
 
 @AutoService(IPlatform.class)
 public class PlatformFabric implements IPlatform {
@@ -91,18 +91,17 @@ public class PlatformFabric implements IPlatform {
     }
 
     @Override
-    public <T extends CreativeModeTab> Supplier<T> registerCreativeModeTab(String id, Supplier<T> tab) {
-        return registerSupplier(BuiltInRegistries.CREATIVE_MODE_TAB, id, tab);
+    public Supplier<CreativeModeTab> registerCreativeModeTab(String id, Supplier<ItemStack> icon, Consumer<CreativeModeTab.Builder> tab) {
+        return registerSupplier(BuiltInRegistries.CREATIVE_MODE_TAB, id, () -> {
+            var builder = FabricItemGroup.builder().icon(icon).title(Component.translatable(Util.makeDescriptionId("itemGroup", PoppingPresents.id(id))));
+            tab.accept(builder);
+            return builder.build();
+        });
     }
 
     @Override
     public <E extends Mob> Supplier<SpawnEggItem> registerSpawnEgg(String id, Supplier<EntityType<E>> entityType, Supplier<Item.Properties> properties) {
         return registerItem(id, SpawnEggItem::new, () -> properties.get().spawnEgg(entityType.get()));
-    }
-
-    @Override
-    public CreativeModeTab.Builder newCreativeTabBuilder() {
-        return FabricItemGroup.builder();
     }
 
     @Override

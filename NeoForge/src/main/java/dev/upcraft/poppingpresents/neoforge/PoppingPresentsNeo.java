@@ -38,6 +38,6 @@ public class PoppingPresentsNeo {
 
     @SubscribeEvent
     public static void registerDynamicRegistries(DataPackRegistryEvent.NewRegistry event) {
-        event.dataPackRegistry(PresentType.REGISTRY_ID, PresentType.CODEC, PresentType.CODEC, builder -> builder.disableRegistrationCheck().defaultKey(PresentType.REGISTRY_DEFAULT_KEY).sync(true));
+        event.dataPackRegistry(PresentType.REGISTRY_ID, PresentType.CODEC, PresentType.CODEC, builder -> builder.sync(true));
     }
 }

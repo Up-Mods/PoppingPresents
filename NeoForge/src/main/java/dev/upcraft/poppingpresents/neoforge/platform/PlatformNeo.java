@@ -1,16 +1,20 @@
 package dev.upcraft.poppingpresents.neoforge.platform;
 
 import com.google.auto.service.AutoService;
+import dev.upcraft.poppingpresents.PoppingPresents;
 import dev.upcraft.poppingpresents.neoforge.PoppingPresentsNeo;
 import dev.upcraft.poppingpresents.platform.IPlatform;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.Util;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -19,6 +23,7 @@ import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -82,13 +87,12 @@ public class PlatformNeo implements IPlatform {
     }
 
     @Override
-    public <T extends CreativeModeTab> Supplier<T> registerCreativeModeTab(String id, Supplier<T> tab) {
-        return PoppingPresentsNeo.CREATIVE_TABS.register(id, tab);
-    }
-
-    @Override
-    public CreativeModeTab.Builder newCreativeTabBuilder() {
-        return CreativeModeTab.builder();
+    public Supplier<CreativeModeTab> registerCreativeModeTab(String id, Supplier<ItemStack> icon, Consumer<CreativeModeTab.Builder> tab) {
+        return PoppingPresentsNeo.CREATIVE_TABS.register(id, () -> {
+            var builder = CreativeModeTab.builder().icon(icon).title(Component.translatable(Util.makeDescriptionId("itemGroup", PoppingPresents.id(id))));
+            tab.accept(builder);
+            return builder.build();
+        });
     }
 
     @Override

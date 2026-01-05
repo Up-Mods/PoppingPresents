@@ -1,6 +1,7 @@
 package dev.upcraft.poppingpresents;
 
 import com.mojang.logging.LogUtils;
+import dev.upcraft.poppingpresents.init.PPCreativeTabs;
 import dev.upcraft.poppingpresents.init.PPEntities;
 import dev.upcraft.poppingpresents.init.PPEntityDataSerializers;
 import dev.upcraft.poppingpresents.init.PPItems;
@@ -20,9 +21,10 @@ public class PoppingPresents {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public static void init() {
-        loadClass(PPItems.class);
-        loadClass(PPEntityDataSerializers.class);
+        loadClass(PPCreativeTabs.class);
         loadClass(PPEntities.class);
+        loadClass(PPEntityDataSerializers.class);
+        loadClass(PPItems.class);
     }
 
     public static Identifier id(String path) {

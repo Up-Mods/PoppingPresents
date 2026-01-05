@@ -12,13 +12,14 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.ExtraCodecs;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.storage.loot.LootTable;
 
 import java.util.Optional;
 
 // TODO use spawn weight
-public record PresentType(float width, float height, int spawnWeight, Optional<ResourceKey<LootTable>> customLootTableId) {
+public record PresentType(float width, float height, Rarity rarity, int spawnWeight, Optional<ResourceKey<LootTable>> customLootTableId) {
 
     public static final ResourceKey<Registry<PresentType>> REGISTRY_ID = ResourceKey.createRegistryKey(PoppingPresents.id("present_type"));
     public static final Identifier REGISTRY_DEFAULT_KEY = PoppingPresents.id("small_present");
@@ -26,6 +27,7 @@ public record PresentType(float width, float height, int spawnWeight, Optional<R
     public static final Codec<PresentType> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         ExtraCodecs.POSITIVE_FLOAT.fieldOf("width").forGetter(PresentType::width),
         ExtraCodecs.POSITIVE_FLOAT.fieldOf("height").forGetter(PresentType::height),
+        Rarity.CODEC.optionalFieldOf("rarity", Rarity.COMMON).forGetter(PresentType::rarity),
         ExtraCodecs.POSITIVE_INT.optionalFieldOf("spawn_weight", 10).forGetter(PresentType::spawnWeight),
         ResourceKey.codec(Registries.LOOT_TABLE).lenientOptionalFieldOf("loot_table").forGetter(PresentType::customLootTableId)
 
