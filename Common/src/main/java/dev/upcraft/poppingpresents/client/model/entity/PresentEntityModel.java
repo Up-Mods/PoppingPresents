@@ -5,6 +5,7 @@ import dev.upcraft.poppingpresents.PoppingPresents;
 import dev.upcraft.poppingpresents.entity.PresentEntity;
 import dev.upcraft.poppingpresents.present.PresentType;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -52,7 +53,13 @@ public class PresentEntityModel extends GeoModel<PresentEntity> {
     @Override
     public Identifier getTextureResource(GeoRenderState renderState) {
         var type = renderState.getGeckolibData(TYPE);
-        return getModelData(type).texturePath();
+        var modelData = getModelData(type);
+
+        if(MISSING_MODELS.contains(modelData.modelPath)) {
+            return MissingTextureAtlasSprite.getLocation();
+        }
+
+        return modelData.texturePath();
     }
 
     @Override
