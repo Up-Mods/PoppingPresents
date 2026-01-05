@@ -75,10 +75,10 @@ public class PresentEntityModel extends GeoModel<PresentEntity> {
             // assets/<modid>/geckolib/models/entity/popping_presents/present/<path>.geo.json
             // assets/<modid>/geckolib/animations/entity/popping_presents/present/<path>.animation.json
             // assets/<modid>/textures/entity/popping_presents/present/<path>.png
-            var commonPrefix = "entity/%s/present".formatted(PoppingPresents.MOD_ID);
+            var commonPrefix = "entity/%s/present/".formatted(PoppingPresents.MOD_ID);
             var modelPath = typeId.withPrefix(commonPrefix);
             var animationsPath = typeId.withPrefix(commonPrefix);
-            var texturePath = typeId.withPath(path -> "textures/%s/%s.png".formatted(commonPrefix, path));
+            var texturePath = typeId.withPath(path -> "textures/%s%s.png".formatted(commonPrefix, path));
 
             return new ModelData(modelPath, animationsPath, texturePath);
         }
