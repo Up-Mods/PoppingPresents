@@ -48,19 +48,14 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
 
     public static final EntityDataAccessor<Boolean> DATA_ID_OPEN = SynchedEntityData.defineId(PresentEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Holder<PresentType>> DATA_ID_PRESENT_TYPE = SynchedEntityData.defineId(PresentEntity.class, PPEntityDataSerializers.PRESENT_TYPE);
+    public static final String NBT_KEY_PRESENT_TYPE = "PresentType";
+    public static final String NBT_KEY_OWNER = "Owner";
     protected static final EntityDataAccessor<Integer> DATA_ID_HURT = SynchedEntityData.defineId(PresentEntity.class, EntityDataSerializers.INT);
     protected static final EntityDataAccessor<Integer> DATA_ID_HURTDIR = SynchedEntityData.defineId(PresentEntity.class, EntityDataSerializers.INT);
     protected static final EntityDataAccessor<Float> DATA_ID_DAMAGE = SynchedEntityData.defineId(PresentEntity.class, EntityDataSerializers.FLOAT);
-    public static final String NBT_KEY_PRESENT_TYPE = "PresentType";
-    public static final String NBT_KEY_OWNER = "Owner";
     private static final int MAX_SLOTS = 27;
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
-    private NonNullList<ItemStack> inventory = NonNullList.withSize(MAX_SLOTS, ItemStack.EMPTY);
-    private @Nullable ResourceKey<LootTable> lootTable;
-    private long lootTableSeed = 0L;
-    private @Nullable EntityReference<LivingEntity> owner;
-
     // FIXME write custom openers counter that works with entities
     private final ContainerOpenersCounter openersCounter = new ContainerOpenersCounter() {
         @Override
@@ -89,6 +84,10 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
                 && chest.getContainer() == PresentEntity.this;
         }
     };
+    private NonNullList<ItemStack> inventory = NonNullList.withSize(MAX_SLOTS, ItemStack.EMPTY);
+    private @Nullable ResourceKey<LootTable> lootTable;
+    private long lootTableSeed = 0L;
+    private @Nullable EntityReference<LivingEntity> owner;
 
     public PresentEntity(EntityType<PresentEntity> entityType, Level level) {
         super(entityType, level);
@@ -114,7 +113,7 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
     @Override
     public void baseTick() {
         super.baseTick();
-        if(this.tickCount % 5 == 0) {
+        if (this.tickCount % 5 == 0) {
             openersCounter.recheckOpeners(level(), blockPosition(), Blocks.BEDROCK.defaultBlockState());
         }
     }
@@ -184,6 +183,11 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
         return entityData.get(DATA_ID_PRESENT_TYPE);
     }
 
+    public void setPresentType(Holder<PresentType> value) {
+        entityData.set(DATA_ID_PRESENT_TYPE, value);
+        refreshDimensions();
+    }
+
     public int getHurtTime() {
         return this.entityData.get(DATA_ID_HURT);
     }
@@ -208,11 +212,6 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
         this.entityData.set(DATA_ID_DAMAGE, damage);
     }
 
-    public void setPresentType(Holder<PresentType> value) {
-        entityData.set(DATA_ID_PRESENT_TYPE, value);
-        refreshDimensions();
-    }
-
     public Holder<PresentType> getDefaultPresentType() {
         var registry = PresentType.registry(level());
         return registry.getOrThrow(PresentType.REGISTRY_DEFAULT_KEY);
@@ -221,7 +220,7 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
     @Override
     public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
         super.onSyncedDataUpdated(key);
-        if(DATA_ID_PRESENT_TYPE.equals(key)) {
+        if (DATA_ID_PRESENT_TYPE.equals(key)) {
             refreshDimensions();
         }
     }
@@ -243,16 +242,16 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
 
     @Override
     public boolean canBeCollidedWith(@Nullable Entity other) {
-        if(!this.isAlive()) {
+        if (!this.isAlive()) {
             return false;
         }
 
-        if(other instanceof LivingEntity livingEntity) {
-            if(livingEntity.isShiftKeyDown()) {
+        if (other instanceof LivingEntity livingEntity) {
+            if (livingEntity.isShiftKeyDown()) {
                 return false;
             }
 
-            if(owner != null) {
+            if (owner != null) {
                 return owner.matches(livingEntity);
             }
 
@@ -275,31 +274,33 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(AnimationControllers.MAIN, test -> {
-                if(this.isOpen()) {
+                System.out.print("EVAL: ");
+                if (this.isOpen()) {
                     System.out.println("OPEN!!");
                     return test.setAndContinue(Animations.STATE_OPEN);
                 }
 
+                System.out.println("STOP");
                 return PlayState.STOP;
             })
-            .triggerableAnim(AnimationTriggers.TRIGGER_OPEN, Animations.INTERACT_OPEN)
-            .triggerableAnim(AnimationTriggers.TRIGGER_CLOSE, Animations.INTERACT_CLOSE)
+                .triggerableAnim(AnimationTriggers.TRIGGER_OPEN, Animations.INTERACT_OPEN)
+                .triggerableAnim(AnimationTriggers.TRIGGER_CLOSE, Animations.INTERACT_CLOSE)
         );
     }
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
-        if(!this.isAlive()) {
+        if (!this.isAlive()) {
             return InteractionResult.PASS;
         }
 
         var superResult = super.interact(player, hand);
-        if(superResult != InteractionResult.PASS) {
+        if (superResult != InteractionResult.PASS) {
             return superResult;
         }
 
         var tryOpenResult = this.interactWithContainerVehicle(player);
-        if(tryOpenResult.consumesAction()) {
+        if (tryOpenResult.consumesAction()) {
             this.gameEvent(GameEvent.ENTITY_INTERACT, player);
             return tryOpenResult;
         }
@@ -308,14 +309,14 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
     }
 
     public void animateOpen() {
-        if(!level().isClientSide()) {
+        if (!level().isClientSide()) {
             stopTriggeredAnim(AnimationControllers.MAIN, AnimationTriggers.TRIGGER_CLOSE);
             triggerAnim(AnimationControllers.MAIN, AnimationTriggers.TRIGGER_OPEN);
         }
     }
 
     public void animateClose() {
-        if(!level().isClientSide()) {
+        if (!level().isClientSide()) {
             stopTriggeredAnim(AnimationControllers.MAIN, AnimationTriggers.TRIGGER_OPEN);
             triggerAnim(AnimationControllers.MAIN, AnimationTriggers.TRIGGER_CLOSE);
         }
@@ -408,14 +409,14 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
 
     @Override
     public void startOpen(ContainerUser user) {
-        if(this.isAlive() && !user.getLivingEntity().isSpectator()) {
+        if (this.isAlive() && !user.getLivingEntity().isSpectator()) {
             openersCounter.incrementOpeners(user.getLivingEntity(), level(), blockPosition(), Blocks.BEDROCK.defaultBlockState(), user.getContainerInteractionRange());
         }
     }
 
     @Override
     public void stopOpen(ContainerUser user) {
-        if(this.isAlive() && !user.getLivingEntity().isSpectator()) {
+        if (this.isAlive() && !user.getLivingEntity().isSpectator()) {
             openersCounter.incrementOpeners(user.getLivingEntity(), level(), blockPosition(), Blocks.BEDROCK.defaultBlockState(), user.getContainerInteractionRange());
         }
     }
