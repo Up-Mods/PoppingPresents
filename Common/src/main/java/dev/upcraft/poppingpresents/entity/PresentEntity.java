@@ -373,6 +373,6 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
         public static final RawAnimation INTERACT_OPEN = RawAnimation.begin().thenPlay("interact.open");
         public static final RawAnimation INTERACT_CLOSE = RawAnimation.begin().thenPlay("interact.close");
 
-        public static final RawAnimation STATE_OPEN = RawAnimation.begin().thenPlayAndHold("state.open");
+        public static final RawAnimation STATE_OPEN = RawAnimation.begin().thenPlay("state.open");
     }
 }

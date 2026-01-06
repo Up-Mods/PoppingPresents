@@ -1,0 +1,6 @@
+{
+  "width": 0.75,
+  "height": 0.3125,
+  "spawn_weight": 10,
+  "loot_table": "minecraft:chests/abandoned_mineshaft"
+}
