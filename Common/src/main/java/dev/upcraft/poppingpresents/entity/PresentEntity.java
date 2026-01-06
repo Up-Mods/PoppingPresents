@@ -274,13 +274,10 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(AnimationControllers.MAIN, test -> {
-                System.out.print("EVAL: ");
                 if (this.isOpen()) {
-                    System.out.println("OPEN!!");
                     return test.setAndContinue(Animations.STATE_OPEN);
                 }
 
-                System.out.println("STOP");
                 return PlayState.STOP;
             })
                 .triggerableAnim(AnimationTriggers.TRIGGER_OPEN, Animations.INTERACT_OPEN)
