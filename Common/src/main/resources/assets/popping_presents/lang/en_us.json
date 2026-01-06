@@ -1,3 +1,8 @@
 {
-  "entity.popping_presents.present": "Popping Present"
+  "entity.popping_presents.present": "Popping Present",
+  "item.popping_presents.present": "Popping Present",
+  "popping_presents_present_type.popping_presents.large_present": "Large Present",
+  "popping_presents_present_type.popping_presents.medium_present": "Medium Present",
+  "popping_presents_present_type.popping_presents.small_present": "Small Present",
+  "popping_presents_present_type.popping_presents.tall_present": "Tall Present"
 }

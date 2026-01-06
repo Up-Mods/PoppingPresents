@@ -5,9 +5,10 @@ import dev.upcraft.poppingpresents.init.PPEntityDataSerializers;
 import dev.upcraft.poppingpresents.item.PresentItem;
 import dev.upcraft.poppingpresents.platform.IPlatform;
 import dev.upcraft.poppingpresents.present.PresentType;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -46,7 +47,7 @@ import java.util.List;
 public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, ContainerEntity, HasCustomInventoryScreen {
 
     public static final EntityDataAccessor<Boolean> OPEN = SynchedEntityData.defineId(PresentEntity.class, EntityDataSerializers.BOOLEAN);
-    public static final EntityDataAccessor<PresentType> PRESENT_TYPE = SynchedEntityData.defineId(PresentEntity.class, PPEntityDataSerializers.PRESENT_TYPE);
+    public static final EntityDataAccessor<Holder<PresentType>> PRESENT_TYPE = SynchedEntityData.defineId(PresentEntity.class, PPEntityDataSerializers.PRESENT_TYPE);
     public static final String NBT_KEY_PRESENT_TYPE = "PresentType";
     public static final String NBT_KEY_OWNER = "Owner";
     private static final int MAX_SLOTS = 27;
@@ -88,11 +89,11 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
         super(entityType, level);
     }
 
-    public PresentEntity(Level level, PresentType type, long lootTableSeed) {
+    public PresentEntity(Level level, Holder<PresentType> type, long lootTableSeed) {
         this(PPEntities.PRESENT.get(), level);
         this.setPresentType(type);
         this.setContainerLootTableSeed(lootTableSeed);
-        this.setContainerLootTable(type.lootTable(level.registryAccess()));
+        this.setContainerLootTable(type.value().lootTable(level.registryAccess()));
     }
 
     @Override
@@ -108,14 +109,14 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
 
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
-        this.setPresentType(input.read(NBT_KEY_PRESENT_TYPE, PresentType.byNameCodec(level())).orElseGet(this::getDefaultPresentType));
+        input.read(NBT_KEY_PRESENT_TYPE, PresentType.HOLDER_CODEC).ifPresent(this::setPresentType);
         this.owner = EntityReference.read(input, NBT_KEY_OWNER);
         this.readChestVehicleSaveData(input);
     }
 
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
-        output.store(NBT_KEY_PRESENT_TYPE, PresentType.byNameCodec(level()), this.getPresentType());
+        output.store(NBT_KEY_PRESENT_TYPE, PresentType.HOLDER_CODEC, this.getPresentType());
         EntityReference.store(this.owner, output, NBT_KEY_OWNER);
         this.addChestVehicleSaveData(output);
     }
@@ -128,17 +129,17 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
         entityData.set(OPEN, open);
     }
 
-    public PresentType getPresentType() {
+    public Holder<PresentType> getPresentType() {
         return entityData.get(PRESENT_TYPE);
     }
 
-    public void setPresentType(PresentType value) {
+    public void setPresentType(Holder<PresentType> value) {
         entityData.set(PRESENT_TYPE, value);
     }
 
-    public PresentType getDefaultPresentType() {
+    public Holder<PresentType> getDefaultPresentType() {
         var registry = PresentType.registry(level());
-        return registry.getValue(PresentType.REGISTRY_DEFAULT_KEY);
+        return registry.getOrThrow(PresentType.REGISTRY_DEFAULT_KEY);
     }
 
     @Override
@@ -178,8 +179,7 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
 
     @Override
     public @Nullable ItemStack getPickResult() {
-        var holder = PresentType.registry(level()).wrapAsHolder(this.getPresentType());
-        return PresentItem.forType(holder);
+        return PresentItem.forType(this.getPresentType());
     }
 
     @Override
@@ -353,6 +353,11 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
             this.gameEvent(GameEvent.CONTAINER_OPEN, player);
             PiglinAi.angerNearbyPiglins(serverLevel, player, true);
         }
+    }
+
+    @Override
+    protected Component getTypeName() {
+        return PresentType.translate(getPresentType());
     }
 
     public static class AnimationControllers {

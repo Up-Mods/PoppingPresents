@@ -5,14 +5,9 @@ import dev.upcraft.poppingpresents.init.PPEntities;
 import dev.upcraft.poppingpresents.init.PPItems;
 import dev.upcraft.poppingpresents.present.PresentType;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.data.loot.packs.VanillaChestLoot;
-import net.minecraft.data.loot.packs.VanillaLootTableProvider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SpawnEggItem;
@@ -31,10 +26,13 @@ public class PresentItem extends SpawnEggItem {
         var stack = new ItemStack(PPItems.PRESENT.get());
         stack.set(DataComponents.RARITY, type.value().rarity());
 
+        stack.set(DataComponents.ITEM_NAME, PresentType.translate(type));
+
         // TODO custom data component type, don't abuse SpawnEgg
         var tag = new CompoundTag();
         extraData.accept(tag);
-        tag.putString(PresentEntity.NBT_KEY_PRESENT_TYPE, type.unwrapKey().orElseThrow(() -> new IllegalStateException("Holder not registered!")).identifier().toString());
+        var typeId = type.unwrapKey().orElseThrow(() -> new IllegalStateException("Holder not registered!"));
+        tag.putString(PresentEntity.NBT_KEY_PRESENT_TYPE, typeId.identifier().toString());
         stack.set(DataComponents.ENTITY_DATA, TypedEntityData.of(PPEntities.PRESENT.get(), tag));
         return stack;
     }
@@ -48,7 +46,7 @@ public class PresentItem extends SpawnEggItem {
     }
 
     public static ItemStack withLootTableFromType(Holder<PresentType> type) {
-        var lootTable = type.value().customLootTableId().orElseGet(() -> PresentType.fromRegistryId(type.unwrapKey().orElseThrow(() -> new IllegalStateException("Tried to get loot table for unregistered present type!"))));
+        var lootTable = type.value().customLootTableId().orElseGet(() -> PresentType.fromRegistryId(type.unwrapKey().orElseThrow(() -> new IllegalStateException("Tried to get loot table for unregistered holder!"))));
         return withLootTable(type, lootTable);
     }
 
