@@ -2,7 +2,6 @@
 	"format_version": "1.8.0",
 	"animations": {
 		"interact.open": {
-			"loop": "play_once",
 			"animation_length": 1,
 			"bones": {
 				"mediumPresentLid": {
@@ -12,9 +11,6 @@
 					"rotation": [0, 0, 0.01]
 				},
 				"smallPresentLid": {
-					"relative_to": {
-						"rotation": "entity"
-					},
 					"rotation": {
 						"0.0": {
 							"post": {
@@ -63,32 +59,19 @@
 					},
 					"scale": {
 						"0.5": {
-							"pre": {
-								"vector": [1, 1, 1]
-							},
-							"post": {
-								"vector": [1, 1, 1]
-							},
-							"lerp_mode": "catmullrom"
+							"vector": [1, 1, 1]
 						},
 						"1.0": {
-							"post": {
-								"vector": [0, 0, 0]
-							},
-							"lerp_mode": "catmullrom"
+							"vector": [0, 0, 0]
 						}
 					}
 				}
 			}
 		},
 		"interact.close": {
-			"loop": "play_once",
 			"animation_length": 1,
 			"bones": {
 				"smallPresentLid": {
-					"relative_to": {
-						"rotation": "entity"
-					},
 					"rotation": {
 						"0.0": {
 							"post": {
@@ -137,45 +120,22 @@
 					},
 					"scale": {
 						"0.0": {
-							"post": {
-								"vector": [0, 0, 0]
-							},
-							"lerp_mode": "catmullrom"
+							"vector": [0, 0, 0]
 						},
 						"0.5": {
-							"post": {
-								"vector": [1, 1, 1]
-							},
-							"lerp_mode": "catmullrom"
+							"vector": [1, 1, 1]
 						}
 					}
 				}
 			}
 		},
 		"state.open": {
-      "loop": "hold_on_last_frame",
+			"loop": true,
 			"animation_length": 0.0417,
 			"bones": {
 				"smallPresentLid": {
-					"relative_to": {
-						"rotation": "entity"
-					},
-					"rotation": [0, 0, 0.01],
-					"position": {
-						"0.0": {
-							"post": {
-								"vector": [0, 2, 0]
-							},
-							"lerp_mode": "catmullrom"
-						}
-					},
 					"scale": {
-						"0.0": {
-							"post": {
-								"vector": [0, 0, 0]
-							},
-							"lerp_mode": "catmullrom"
-						}
+						"vector": [0, 0, 0]
 					}
 				}
 			}
