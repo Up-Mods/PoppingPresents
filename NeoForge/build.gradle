@@ -28,6 +28,9 @@ neoForge {
                 programArguments.addAll "--username", mc_username
             }
         }
+        client2 {
+            client()
+        }
         data {
             clientData()
             programArguments.addAll("--mod", mod_id, "--all", "--output", file("../common/src/generated/resources").absolutePath, "--existing", file("../common/src/main/resources").absolutePath)

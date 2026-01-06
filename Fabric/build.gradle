@@ -42,6 +42,12 @@ loom {
                 programArgs("--username", project.mc_username)
             }
         }
+        client2 {
+            client()
+            setConfigName("Fabric Client 2")
+            ideConfigGenerated(true)
+            runDir("runs/client")
+        }
         server {
             server()
             setConfigName("Fabric Server")
