@@ -46,8 +46,11 @@ import java.util.List;
 
 public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, ContainerEntity, HasCustomInventoryScreen {
 
-    public static final EntityDataAccessor<Boolean> OPEN = SynchedEntityData.defineId(PresentEntity.class, EntityDataSerializers.BOOLEAN);
-    public static final EntityDataAccessor<Holder<PresentType>> PRESENT_TYPE = SynchedEntityData.defineId(PresentEntity.class, PPEntityDataSerializers.PRESENT_TYPE);
+    public static final EntityDataAccessor<Boolean> DATA_ID_OPEN = SynchedEntityData.defineId(PresentEntity.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Holder<PresentType>> DATA_ID_PRESENT_TYPE = SynchedEntityData.defineId(PresentEntity.class, PPEntityDataSerializers.PRESENT_TYPE);
+    protected static final EntityDataAccessor<Integer> DATA_ID_HURT = SynchedEntityData.defineId(PresentEntity.class, EntityDataSerializers.INT);
+    protected static final EntityDataAccessor<Integer> DATA_ID_HURTDIR = SynchedEntityData.defineId(PresentEntity.class, EntityDataSerializers.INT);
+    protected static final EntityDataAccessor<Float> DATA_ID_DAMAGE = SynchedEntityData.defineId(PresentEntity.class, EntityDataSerializers.FLOAT);
     public static final String NBT_KEY_PRESENT_TYPE = "PresentType";
     public static final String NBT_KEY_OWNER = "Owner";
     private static final int MAX_SLOTS = 27;
@@ -64,12 +67,14 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
         protected void onOpen(Level level, BlockPos pos, BlockState state) {
             animateOpen();
             setOpen(true);
+            System.out.println("OPENING!");
         }
 
         @Override
         protected void onClose(Level level, BlockPos pos, BlockState state) {
             animateClose();
             setOpen(false);
+            System.out.println("CLOSING!");
         }
 
         @Override
@@ -87,6 +92,7 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
 
     public PresentEntity(EntityType<PresentEntity> entityType, Level level) {
         super(entityType, level);
+        this.refreshDimensions();
     }
 
     public PresentEntity(Level level, Holder<PresentType> type, long lootTableSeed) {
@@ -98,12 +104,57 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        builder.define(OPEN, false);
-        builder.define(PRESENT_TYPE, getDefaultPresentType());
+        builder.define(DATA_ID_OPEN, false);
+        builder.define(DATA_ID_PRESENT_TYPE, getDefaultPresentType());
+        builder.define(DATA_ID_HURT, 0);
+        builder.define(DATA_ID_HURTDIR, 1);
+        builder.define(DATA_ID_DAMAGE, 0.0F);
+    }
+
+    @Override
+    public void baseTick() {
+        super.baseTick();
+        if(this.tickCount % 5 == 0) {
+            openersCounter.recheckOpeners(level(), blockPosition(), Blocks.BEDROCK.defaultBlockState());
+        }
+    }
+
+    @Override
+    public boolean hurtClient(DamageSource damageSource) {
+        return true;
     }
 
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource damageSource, float amount) {
+        if (this.isRemoved()) {
+            return true;
+        } else if (this.isInvulnerableToBase(damageSource)) {
+            return false;
+        } else {
+            this.setHurtDir(-this.getHurtDir());
+            this.setHurtTime(10);
+            this.markHurt();
+            this.setDamage(this.getDamage() + amount * 10.0F);
+            this.gameEvent(GameEvent.ENTITY_DAMAGE, damageSource.getEntity());
+            boolean flag = damageSource.getEntity() instanceof Player player && player.getAbilities().instabuild;
+            if ((flag || !(this.getDamage() > 40.0F)) && !this.shouldSourceDestroy(damageSource)) {
+                if (flag) {
+                    this.discard();
+                }
+            } else {
+                this.destroy(level, damageSource);
+            }
+
+            return true;
+        }
+    }
+
+    protected void destroy(ServerLevel level, DamageSource damageSource) {
+        this.kill(level);
+        this.chestVehicleDestroyed(damageSource, level, this);
+    }
+
+    protected boolean shouldSourceDestroy(DamageSource damageSource) {
         return false;
     }
 
@@ -122,24 +173,57 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
     }
 
     public boolean isOpen() {
-        return entityData.get(OPEN);
+        return entityData.get(DATA_ID_OPEN);
     }
 
     public void setOpen(boolean open) {
-        entityData.set(OPEN, open);
+        entityData.set(DATA_ID_OPEN, open);
     }
 
     public Holder<PresentType> getPresentType() {
-        return entityData.get(PRESENT_TYPE);
+        return entityData.get(DATA_ID_PRESENT_TYPE);
+    }
+
+    public int getHurtTime() {
+        return this.entityData.get(DATA_ID_HURT);
+    }
+
+    public void setHurtTime(int hurtTime) {
+        this.entityData.set(DATA_ID_HURT, hurtTime);
+    }
+
+    public int getHurtDir() {
+        return this.entityData.get(DATA_ID_HURTDIR);
+    }
+
+    public void setHurtDir(int hurtDir) {
+        this.entityData.set(DATA_ID_HURTDIR, hurtDir);
+    }
+
+    public float getDamage() {
+        return this.entityData.get(DATA_ID_DAMAGE);
+    }
+
+    public void setDamage(float damage) {
+        this.entityData.set(DATA_ID_DAMAGE, damage);
     }
 
     public void setPresentType(Holder<PresentType> value) {
-        entityData.set(PRESENT_TYPE, value);
+        entityData.set(DATA_ID_PRESENT_TYPE, value);
+        refreshDimensions();
     }
 
     public Holder<PresentType> getDefaultPresentType() {
         var registry = PresentType.registry(level());
         return registry.getOrThrow(PresentType.REGISTRY_DEFAULT_KEY);
+    }
+
+    @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
+        super.onSyncedDataUpdated(key);
+        if(DATA_ID_PRESENT_TYPE.equals(key)) {
+            refreshDimensions();
+        }
     }
 
     @Override
@@ -149,6 +233,12 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
 
     public void setOwner(LivingEntity entity) {
         this.owner = EntityReference.of(entity);
+    }
+
+    @Override
+    public EntityDimensions getDimensions(Pose pose) {
+        var type = getPresentType().value();
+        return EntityDimensions.fixed(type.width(), type.height());
     }
 
     @Override
@@ -186,6 +276,7 @@ public class PresentEntity extends Entity implements GeoEntity, OwnableEntity, C
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(AnimationControllers.MAIN, test -> {
                 if(this.isOpen()) {
+                    System.out.println("OPEN!!");
                     return test.setAndContinue(Animations.STATE_OPEN);
                 }
 

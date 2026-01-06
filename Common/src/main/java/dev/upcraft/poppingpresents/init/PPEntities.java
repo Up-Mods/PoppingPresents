@@ -11,9 +11,9 @@ import java.util.function.Supplier;
 public class PPEntities {
 
     public static final Supplier<EntityType<PresentEntity>> PRESENT = IPlatform.INSTANCE.registerEntity("present", PresentEntity::new, MobCategory.MISC, builder -> builder
-        .sized(0.5F, 0.7F)
-        .spawnDimensionsScale(1.2F)
+        .sized(0.7F, 0.7F)
         .fireImmune()
+        .noSummon()
         .immuneTo(Blocks.POWDER_SNOW, Blocks.MAGMA_BLOCK, Blocks.WITHER_ROSE, Blocks.SWEET_BERRY_BUSH)
         .canSpawnFarFromPlayer()
         .clientTrackingRange(10)
