@@ -7,6 +7,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
@@ -48,6 +49,8 @@ public class PoppingPresentsNeo {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onFinishSleeping(SleepFinishedTimeEvent event) {
-        PPHooks.onFinishedSleeping(event.getLevel());
+        if(event.getLevel() instanceof ServerLevelAccessor serverLevelAccessor) {
+            PPHooks.onFinishedSleeping(serverLevelAccessor);
+        }
     }
 }
