@@ -21,7 +21,6 @@ import net.minecraft.world.level.storage.loot.LootTable;
 
 import java.util.Optional;
 
-// TODO use spawn weight
 public record PresentType(float width, float height, Rarity rarity, int spawnWeight, Optional<ResourceKey<LootTable>> customLootTableId) {
 
     public static final ResourceKey<Registry<PresentType>> REGISTRY_ID = ResourceKey.createRegistryKey(PoppingPresents.id("present_type"));
