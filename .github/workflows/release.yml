@@ -185,7 +185,7 @@ jobs:
           curseforge-project-id: ${{ needs.publish_platforms.outputs.curseforge_id }}
           modrinth-project-id: ${{ needs.publish_platforms.outputs.modrinth_id }}
           ping-notification-role: false
-          # thumbnail-url:
+          thumbnail-url: https://mod-assets.upcraft.dev/promo/popping-presents/icon_128x.png
 
       - name: Notify Discord (KiriCattus)
         uses: Up-Mods/action-discord-release@main
@@ -200,4 +200,4 @@ jobs:
           curseforge-emoji: "<:curseforge:1136460201608871986>"
           modrinth-emoji: "<:modrinth:1136460057471635516>"
           sourcecode-emoji: "<:github:1458216644580217166>"
-          # thumbnail-url:
+          thumbnail-url: https://mod-assets.upcraft.dev/promo/popping-presents/icon_128x.png
