@@ -24,7 +24,7 @@
     "issues": "${issues_url}"
   },
   "license": "${license_url}",
-  "icon": "logo.png",
+  "icon": "icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
