@@ -130,9 +130,9 @@ processResources {
         "credits"                             : project.credits,
         "description"                         : project.description,
 
-        "homepage_url"                         : project.homepage_url,
-        "discord_url"                             : project.discord_url,
-        "sources_url"                          : project.sources_url,
+        "homepage_url"                        : project.homepage_url,
+        "discord_url"                         : project.discord_url,
+        "sources_url"                         : project.sources_url,
         "issues_url"                          : project.issues_url,
         "license_url"                         : project.license_url,
         "modrinth_url"                        : "https://modrinth.com/mod/${project.modrinth_id}",
