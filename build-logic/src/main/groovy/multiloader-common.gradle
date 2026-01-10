@@ -148,17 +148,8 @@ processResources {
         "fabric_version"                      : project.fabric_version,
         "fabric_loader_version"               : project.fabric_loader_version,
 
-        "smart_brain_lib_neoforge_version"    : project.smart_brain_lib_neoforge_version,
-        "smart_brain_lib_fabric_version"      : project.smart_brain_lib_fabric_version,
-
         "geckolib_neoforge_version"           : project.geckolib_neoforge_version,
-        "geckolib_fabric_version"             : project.geckolib_fabric_version,
-
-        "resourceful_config_neoforge_version" : project.resourceful_config_neoforge_version,
-        "resourceful_config_fabric_version"   : project.resourceful_config_fabric_version,
-
-        "terrablender_neoforge_version"       : project.terrablender_neoforge_version,
-        "terrablender_fabric_version"         : project.terrablender_fabric_version
+        "geckolib_fabric_version"             : project.geckolib_fabric_version
     ]
 
     var jsonExpandProperties = expandProperties.collectEntries {
