@@ -19,6 +19,7 @@ neoForge {
         }
         client {
             client()
+            devLogin = true
 
             if (project.hasProperty("mc_uuid")) {
                 programArguments.addAll "--uuid", mc_uuid
